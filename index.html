@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우주 탐사 퀴즈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: light;
+            --page: #eef4fb;
+            --surface: #ffffff;
+            --surface-raised: #f8fbff;
+            --bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --correct: #10b981;
+            --correct-light: #d1fae5;
+            --wrong: #ef4444;
+            --wrong-light: #fee2e2;
+            --progress-bg: #cbd5e1;
+            --primary: #3b82f6;
+            --primary-dark: #1e40af;
+            --accent: #8b5cf6;
+            --focus: #1d4ed8;
+            --shadow: 15, 23, 42;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                color-scheme: dark;
+                --page: #080f1c;
+                --surface: #111c2c;
+                --surface-raised: #17263a;
+                --bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                --text: #f1f5f9;
+                --text-light: #cbd5e1;
+                --border: #334155;
+                --correct-light: #064e3b;
+                --wrong-light: #7f1d1d;
+                --progress-bg: #475569;
+                --primary: #60a5fa;
+                --primary-dark: #1e40af;
+                --focus: #bfdbfe;
+                --shadow: 0, 0, 0;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            background-attachment: fixed;
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 24px 70px rgba(var(--shadow), 0.12), 0 2px 8px rgba(var(--shadow), 0.05);
+            animation: slideUp 0.6s ease cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease 0.2s both;
+        }
+
+        .title {
+            font-size: clamp(24px, 6vw, 29px);
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+            position: relative;
+            padding: 14px 12px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--surface-raised), rgba(96, 165, 250, 0.08));
+            color: var(--text);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .score-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            animation: fadeIn 0.8s ease 0.3s both;
+        }
+
+        .question-counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .score-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 7px 13px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: var(--progress-bg);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 28px;
+            animation: fadeIn 0.8s ease 0.4s both;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: inherit;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .quiz-section {
+            display: none;
+        }
+
+        .quiz-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .question-number {
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.04em;
+            animation: fadeIn 0.6s ease 0.1s both;
+        }
+
+        .question {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.45;
+            color: var(--text);
+            animation: fadeIn 0.6s ease 0.2s both;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeIn 0.6s ease 0.3s both;
+        }
+
+        .option {
+            padding: 16px 18px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface-raised);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            color: var(--text);
+            text-align: left;
+            min-height: 54px;
+        }
+
+        .option:not(:disabled):hover {
+            border-color: var(--primary);
+            background: color-mix(in srgb, var(--primary) 7%, var(--surface-raised));
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(59, 130, 246, 0.1);
+        }
+
+        .option:disabled {
+            cursor: not-allowed;
+        }
+
+        .option:focus-visible,
+        .next-btn:focus-visible,
+        .restart-btn:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        .option.correct {
+            border-color: var(--correct);
+            background: var(--correct);
+            color: white;
+            animation: correctPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            opacity: 1;
+        }
+
+        .option.wrong {
+            border-color: var(--wrong);
+            background: var(--wrong);
+            color: white;
+            animation: shake 0.5s ease;
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+            opacity: 1;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateX(-10px) rotate(-1deg);
+            }
+            75% {
+                transform: translateX(10px) rotate(1deg);
+            }
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: none;
+            animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: 600;
+            border-inline-start: 4px solid;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: var(--correct-light);
+            color: #065f46;
+            border-left-color: var(--correct);
+        }
+
+        .feedback.wrong {
+            background: var(--wrong-light);
+            color: #7f1d1d;
+            border-left-color: var(--wrong);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .feedback.correct {
+                background: rgba(16, 185, 129, 0.1);
+                color: #86efac;
+            }
+
+            .feedback.wrong {
+                background: rgba(239, 68, 68, 0.1);
+                color: #fca5a5;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-section {
+            text-align: center;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .emoji-reaction {
+            font-size: 100px;
+            margin-bottom: 24px;
+            animation: emojiPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: inline-block;
+        }
+
+        @keyframes emojiPop {
+            0% {
+                transform: scale(0) rotate(-20deg);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .results-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .score-display {
+            font-size: clamp(48px, 12vw, 60px);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            animation: slideUp 0.6s ease 0.2s both;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .results-message {
+            font-size: 15px;
+            margin-bottom: 22px;
+            color: var(--text-light);
+            line-height: 1.7;
+            animation: fadeIn 0.6s ease 0.4s both;
+        }
+
+        .restart-btn {
+            min-height: 50px;
+            padding: 13px 28px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 8px;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.22);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .restart-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .next-btn {
+            width: 100%;
+            min-height: 52px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 24px;
+            display: none;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.22);
+        }
+
+        .next-btn.show {
+            display: block;
+            animation: slideUp 0.4s ease;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .next-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 14px;
+                align-items: flex-start;
+            }
+
+            .container {
+                margin: auto 0;
+                padding: 26px 20px;
+                border-radius: 20px;
+            }
+
+            .header {
+                margin-bottom: 24px;
+            }
+
+            .title {
+                padding: 12px 8px;
+            }
+
+            .question {
+                font-size: 18px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🚀 우주 탐사 퀴즈</h1>
+            <div class="subtitle">우주에 대해 얼마나 아는지 테스트해보세요</div>
+        </div>
+
+        <div class="score-progress">
+            <span class="question-counter" aria-live="polite" aria-atomic="true">문제 <span id="current">1</span> / 10</span>
+            <span class="score-badge" aria-live="polite" aria-atomic="true">점수: <span id="score">0</span>점</span>
+        </div>
+
+        <div class="progress-container" role="progressbar" aria-label="퀴즈 진행률" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="quiz-section active" id="quizSection">
+            <div class="question-number" id="questionNumber">질문 1</div>
+            <h2 class="question" id="question" tabindex="-1"></h2>
+            <div class="options" id="optionsContainer" role="group" aria-labelledby="question"></div>
+            <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+            <button class="next-btn" id="nextBtn">다음 문제</button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="quiz-section" id="resultsSection">
+            <div class="emoji-reaction" id="emoji">🎉</div>
+            <h2 class="results-title" tabindex="-1">퀴즈 완료!</h2>
+            <div class="score-display" id="finalScore">0/10</div>
+            <div class="results-message" id="resultsMessage"></div>
+            <button class="restart-btn" id="restartBtn" type="button">다시 시작하기</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "태양계에는 몇 개의 행성이 있나요?",
+                options: ["7개", "8개", "9개", "10개"],
+                correct: 1
+            },
+            {
+                question: "화성을 무엇의 행성이라고 부르나요?",
+                options: ["파란색", "빨간색", "노란색", "녹색"],
+                correct: 1
+            },
+            {
+                question: "우리가 속한 은하는?",
+                options: ["안드로메다 은하", "은하수(삼각형 은하)", "은하수", "센타우루스A"],
+                correct: 2
+            },
+            {
+                question: "가장 큰 행성은?",
+                options: ["토성", "해왕성", "목성", "금성"],
+                correct: 2
+            },
+            {
+                question: "태양에서 가장 가까운 별은?",
+                options: ["알파 센타우리", "시리우스", "베텔게우스", "알니탁"],
+                correct: 0
+            },
+            {
+                question: "블랙홀의 중심을 무엇이라 부르나요?",
+                options: ["사건의 지평선", "특이점", "광자 구", "에르고스피어"],
+                correct: 1
+            },
+            {
+                question: "우주의 나이는 약 몇 년인가요?",
+                options: ["46억 년", "138억 년", "400억 년", "1조 년"],
+                correct: 1
+            },
+            {
+                question: "국제우주정거장(ISS)은 대략 몇 분마다 지구를 한 바퀴 도나요?",
+                options: ["45분", "60분", "90분", "120분"],
+                correct: 2
+            },
+            {
+                question: "태양의 표면 온도는 약 몇 도인가요?",
+                options: ["3,000°C", "5,500°C", "8,000°C", "15,000°C"],
+                correct: 1
+            },
+            {
+                question: "명왕성은 2006년에 어떻게 분류되었나요?",
+                options: ["소행성", "왜소행성", "위성", "혜성"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function loadQuestion() {
+            const question = quizData[currentQuestion];
+            document.getElementById('question').textContent = question.question;
+            document.getElementById('questionNumber').textContent = `질문 ${currentQuestion + 1}`;
+            document.getElementById('current').textContent = currentQuestion + 1;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = option;
+                button.type = 'button';
+                button.style.animationDelay = `${index * 0.08}s`;
+                button.style.animation = 'fadeIn 0.4s ease both';
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+
+            answered = false;
+            document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+            document.getElementById('nextBtn').classList.remove('show');
+            updateProgressBar();
+        }
+
+        function selectOption(index) {
+            if (answered) return;
+
+            const question = quizData[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            answered = true;
+
+            options.forEach((opt, i) => {
+                opt.disabled = true;
+                if (i === question.correct) {
+                    opt.classList.add('correct');
+                } else if (i === index && i !== question.correct) {
+                    opt.classList.add('wrong');
+                }
+            });
+
+            const feedback = document.getElementById('feedback');
+            if (index === question.correct) {
+                score++;
+                feedback.textContent = '✓ 정답입니다!';
+                feedback.className = 'feedback show correct';
+            } else {
+                feedback.textContent = `✗ 틀렸습니다. 정답은 "${question.options[question.correct]}" 입니다.`;
+                feedback.className = 'feedback show wrong';
+            }
+
+            document.getElementById('score').textContent = score;
+
+            setTimeout(() => {
+                if (currentQuestion < quizData.length - 1) {
+                    document.getElementById('nextBtn').classList.add('show');
+                } else {
+                    showResults();
+                }
+            }, 1500);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            document.getElementById('nextBtn').classList.remove('show');
+            loadQuestion();
+            document.getElementById('question').focus({ preventScroll: true });
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestion) / quizData.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.querySelector('.progress-container').setAttribute('aria-valuenow', currentQuestion);
+        }
+
+        function showResults() {
+            document.getElementById('quizSection').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+
+            const percentage = Math.round((score / quizData.length) * 100);
+            document.getElementById('finalScore').textContent = `${score}/10`;
+            
+            let emoji, message;
+            if (percentage === 100) {
+                emoji = '🤩';
+                message = '완벽해요! 당신은 우주 전문가입니다!';
+            } else if (percentage >= 80) {
+                emoji = '😊';
+                message = '훌륭한 점수예요! 우주에 대해 아주 잘 알고 계네요.';
+            } else if (percentage >= 60) {
+                emoji = '🙂';
+                message = '좋은 점수입니다! 계속 배워보세요.';
+            } else if (percentage >= 40) {
+                emoji = '😐';
+                message = '아직 개선할 여지가 있습니다. 다시 도전해보세요!';
+            } else {
+                emoji = '🤔';
+                message = '우주에 대해 더 배워보세요. 다시 해보세요!';
+            }
+
+            document.getElementById('emoji').textContent = emoji;
+            document.getElementById('resultsMessage').textContent = message;
+            document.querySelector('.results-title').focus({ preventScroll: true });
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('quizSection').classList.add('active');
+            loadQuestion();
+            document.getElementById('question').focus({ preventScroll: true });
+        });
+
+        // Initialize
+        loadQuestion();
+    </script>
+</body>
+</html>
