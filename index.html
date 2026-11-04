@@ -289,6 +289,14 @@
             border-inline-start: 4px solid;
         }
 
+        .explanation {
+            margin: 8px 0 0;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
         .feedback.show {
             display: block;
         }
@@ -492,7 +500,10 @@
             <div class="question-number" id="questionNumber">질문 1</div>
             <h2 class="question" id="question" tabindex="-1"></h2>
             <div class="options" id="optionsContainer" role="group" aria-labelledby="question"></div>
-            <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+            <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true">
+                <span id="feedbackMessage"></span>
+                <p class="explanation" id="explanation"></p>
+            </div>
             <button class="next-btn" id="nextBtn">다음 문제</button>
         </div>
 
@@ -511,52 +522,62 @@
             {
                 question: "태양계에는 몇 개의 행성이 있나요?",
                 options: ["7개", "8개", "9개", "10개"],
-                correct: 1
+                correct: 1,
+                explanation: "태양계 행성은 수성부터 해왕성까지 모두 8개입니다."
             },
             {
                 question: "화성을 무엇의 행성이라고 부르나요?",
                 options: ["파란색", "빨간색", "노란색", "녹색"],
-                correct: 1
+                correct: 1,
+                explanation: "화성 표면의 산화철 먼지가 붉게 보여 '붉은 행성'이라고 불립니다."
             },
             {
                 question: "우리가 속한 은하는?",
                 options: ["안드로메다 은하", "은하수(삼각형 은하)", "은하수", "센타우루스A"],
-                correct: 2
+                correct: 2,
+                explanation: "태양계가 속한 은하의 이름은 우리은하이며, 은하수라고도 부릅니다."
             },
             {
                 question: "가장 큰 행성은?",
                 options: ["토성", "해왕성", "목성", "금성"],
-                correct: 2
+                correct: 2,
+                explanation: "목성은 태양계에서 지름과 질량이 가장 큰 행성입니다."
             },
             {
                 question: "태양에서 가장 가까운 별은?",
                 options: ["알파 센타우리", "시리우스", "베텔게우스", "알니탁"],
-                correct: 0
+                correct: 0,
+                explanation: "태양을 제외하면 알파 센타우리 항성계가 지구에서 가장 가까운 별들입니다."
             },
             {
                 question: "블랙홀의 중심을 무엇이라 부르나요?",
                 options: ["사건의 지평선", "특이점", "광자 구", "에르고스피어"],
-                correct: 1
+                correct: 1,
+                explanation: "일반상대성이론에서 블랙홀 중심은 밀도와 시공간 곡률이 무한대가 되는 특이점으로 설명됩니다."
             },
             {
                 question: "우주의 나이는 약 몇 년인가요?",
                 options: ["46억 년", "138억 년", "400억 년", "1조 년"],
-                correct: 1
+                correct: 1,
+                explanation: "우주의 나이는 빅뱅 이후 약 138억 년으로 추정됩니다."
             },
             {
                 question: "국제우주정거장(ISS)은 대략 몇 분마다 지구를 한 바퀴 도나요?",
                 options: ["45분", "60분", "90분", "120분"],
-                correct: 2
+                correct: 2,
+                explanation: "ISS는 시속 약 2만 8천 km로 이동해 약 90분마다 지구를 한 바퀴 돕니다."
             },
             {
                 question: "태양의 표면 온도는 약 몇 도인가요?",
                 options: ["3,000°C", "5,500°C", "8,000°C", "15,000°C"],
-                correct: 1
+                correct: 1,
+                explanation: "태양의 가시 표면인 광구의 온도는 약 5,500°C입니다."
             },
             {
                 question: "명왕성은 2006년에 어떻게 분류되었나요?",
                 options: ["소행성", "왜소행성", "위성", "혜성"],
-                correct: 1
+                correct: 1,
+                explanation: "국제천문연맹은 2006년 명왕성을 행성이 아닌 왜소행성으로 분류했습니다."
             }
         ];
 
@@ -586,6 +607,8 @@
 
             answered = false;
             document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+            document.getElementById('feedbackMessage').textContent = '';
+            document.getElementById('explanation').textContent = '';
             document.getElementById('nextBtn').classList.remove('show');
             updateProgressBar();
         }
@@ -609,12 +632,13 @@
             const feedback = document.getElementById('feedback');
             if (index === question.correct) {
                 score++;
-                feedback.textContent = '✓ 정답입니다!';
+                document.getElementById('feedbackMessage').textContent = '✓ 정답입니다!';
                 feedback.className = 'feedback show correct';
             } else {
-                feedback.textContent = `✗ 틀렸습니다. 정답은 "${question.options[question.correct]}" 입니다.`;
+                document.getElementById('feedbackMessage').textContent = `✗ 틀렸습니다. 정답은 "${question.options[question.correct]}" 입니다.`;
                 feedback.className = 'feedback show wrong';
             }
+            document.getElementById('explanation').textContent = question.explanation;
 
             document.getElementById('score').textContent = score;
 
