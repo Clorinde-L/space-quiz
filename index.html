@@ -371,6 +371,28 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .best-score {
+            margin-bottom: 16px;
+            color: var(--text-light);
+            font-size: 17px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .new-record-message {
+            margin-bottom: 18px;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            background: var(--surface-raised);
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .new-record-message[hidden] {
+            display: none;
+        }
+
         .results-message {
             font-size: 15px;
             margin-bottom: 22px;
@@ -501,6 +523,8 @@
             <div class="emoji-reaction" id="emoji">🎉</div>
             <h2 class="results-title" tabindex="-1">퀴즈 완료!</h2>
             <div class="score-display" id="finalScore">0/10</div>
+            <p class="best-score" id="bestScore">최고 점수: 0/10</p>
+            <p class="new-record-message" id="newRecordMessage" role="status" aria-live="polite" hidden></p>
             <div class="results-message" id="resultsMessage"></div>
             <button class="restart-btn" id="restartBtn" type="button">다시 시작하기</button>
         </div>
@@ -563,6 +587,25 @@
         let currentQuestion = 0;
         let score = 0;
         let answered = false;
+
+        function getBestScore() {
+            try {
+                const storedScore = window.localStorage.getItem('spaceQuizBestScore');
+                if (storedScore === null || !/^\d+$/.test(storedScore)) return 0;
+
+                const bestScore = Number(storedScore);
+                return Number.isInteger(bestScore) && bestScore <= quizData.length ? bestScore : 0;
+            } catch {
+                return 0;
+            }
+        }
+
+        function saveBestScore(bestScore) {
+            try {
+                window.localStorage.setItem('spaceQuizBestScore', String(bestScore));
+            } catch {
+            }
+        }
 
         function loadQuestion() {
             const question = quizData[currentQuestion];
@@ -646,6 +689,15 @@
 
             const percentage = Math.round((score / quizData.length) * 100);
             document.getElementById('finalScore').textContent = `${score}/10`;
+            let bestScore = getBestScore();
+            const newRecordMessage = document.getElementById('newRecordMessage');
+            newRecordMessage.hidden = score <= bestScore;
+            if (score > bestScore) {
+                bestScore = score;
+                saveBestScore(bestScore);
+                newRecordMessage.textContent = '🏆 새로운 최고 점수를 달성했어요!';
+            }
+            document.getElementById('bestScore').textContent = `최고 점수: ${bestScore}/10`;
             
             let emoji, message;
             if (percentage === 100) {
